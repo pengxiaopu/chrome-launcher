@@ -38,7 +38,15 @@
 
 1. 下载 `.dmg` 文件
 2. 双击打开，将应用拖入 `Applications` 文件夹
-3. 首次打开时右键选择"打开"以通过 Gatekeeper 验证
+3. 首次打开如果提示 **"应用已损坏，无法打开"**，请打开终端执行：
+
+```bash
+sudo xattr -rd com.apple.quarantine "/Applications/Chrome Launcher.app"
+```
+
+然后重新打开应用即可。
+
+> **为什么会出现这个提示？** 因为应用未经过 Apple 开发者签名，macOS Gatekeeper 安全机制会阻止运行。上面的命令用于移除系统的隔离标记。
 
 ## 🛠️ 从源码构建
 
