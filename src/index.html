@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chrome 账号启动器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app">
+    <!-- 顶栏 -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="url(#grad)" stroke-width="2" />
+            <circle cx="12" cy="12" r="4" fill="url(#grad)" />
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="24" y2="24">
+                <stop offset="0%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <h1>Chrome 账号启动器</h1>
+        </div>
+        <button class="btn btn-ghost btn-sm theme-toggle" id="btnThemeToggle" title="切换主题">
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" style="display:none;">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+        </button>
+      </div>
+      <div class="chrome-path" id="chromePath">
+        <span class="path-label">Chrome:</span>
+        <span class="path-value" id="chromePathValue">检测中...</span>
+        <button class="btn btn-ghost btn-sm" id="btnSelectChrome" title="选择 Chrome 路径">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input type="text" id="searchInput" placeholder="搜索邮箱、用户名或标签..." />
+      </div>
+      <div class="toolbar-right">
+        <select id="tagFilter" class="tag-filter-select">
+          <option value="">全部标签</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="btnRefresh" title="刷新列表">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 账号表格 -->
+    <div class="table-container">
+      <table class="account-table">
+        <thead>
+          <tr>
+            <th class="col-email">邮箱</th>
+            <th class="col-name">用户名</th>
+            <th class="col-tags">标签</th>
+            <th class="col-dir">配置目录</th>
+            <th class="col-actions">操作</th>
+          </tr>
+        </thead>
+        <tbody id="accountTableBody">
+        </tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+          opacity="0.4">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+        </svg>
+        <p>暂无匹配的账号</p>
+      </div>
+    </div>
+
+    <!-- 底部状态栏 -->
+    <footer class="footer">
+      <span class="status" id="statusText">就绪</span>
+      <div class="footer-actions">
+        <button class="btn btn-primary" id="btnLaunch">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5,3 19,12 5,21" />
+          </svg>
+          启动 Chrome
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 标签管理弹窗 -->
+  <div class="modal-overlay" id="tagModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>管理标签</h2>
+        <span class="modal-subtitle" id="modalSubtitle"></span>
+        <button class="btn btn-ghost btn-sm modal-close" id="btnCloseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="tag-input-row">
+          <input type="text" id="newTagInput" placeholder="输入新标签名称..." />
+          <button class="btn btn-primary btn-sm" id="btnAddTag">添加</button>
+        </div>
+        <div class="existing-tags-row" id="existingTagsRow" style="display:none;">
+          <span class="existing-label">快速选用:</span>
+          <div class="existing-tags-list" id="existingTagsList"></div>
+        </div>
+        <div class="current-tags" id="currentTagsList">
+          <p class="no-tags">暂无标签</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelModal">取消</button>
+        <button class="btn btn-primary" id="btnSaveModal">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右键菜单 -->
+  <div class="context-menu" id="contextMenu" style="display:none;">
+    <div class="context-menu-item" id="ctxManageTags">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+        <line x1="7" y1="7" x2="7.01" y2="7" />
+      </svg>
+      管理标签
+    </div>
+    <div class="context-menu-item" id="ctxLaunch">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="5,3 19,12 5,21" />
+      </svg>
+      启动 Chrome
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+
+</html>
