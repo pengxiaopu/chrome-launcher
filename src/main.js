@@ -116,6 +116,12 @@ function renderTable() {
     tr.innerHTML = `
       <td class="email-cell">${escapeHtml(profile.email)}</td>
       <td class="name-cell">${escapeHtml(profile.name)}</td>
+      <td class="quota-cell">
+        <button class="btn-quota" data-action="quota" data-dir="${escapeHtml(profile.profile_dir)}" title="在 Chrome 中查看该账号的 AI 额度">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          查看
+        </button>
+      </td>
       <td>
         <div class="tags-cell" data-dir="${escapeHtml(profile.profile_dir)}" data-email="${escapeHtml(profile.email)}">
           ${profileTags.map(t =>
@@ -235,6 +241,8 @@ function bindEvents() {
       launchChrome(dir, email);
     } else if (action === 'quick-tag') {
       showQuickTagDropdown(btn, dir, email);
+    } else if (action === 'quota') {
+      openQuotaPage(dir);
     }
   });
 
@@ -600,4 +608,21 @@ function toggleTheme() {
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
   localStorage.setItem('theme', next);
+}
+
+// ========== 额度查看 ==========
+async function openQuotaPage(profileDir) {
+  if (!chromePath) {
+    setStatus('Chrome 路径无效');
+    return;
+  }
+  try {
+    await invoke('open_quota_page', {
+      chromePath: chromePath,
+      profileDir: profileDir,
+    });
+    setStatus('已在 Chrome 中打开额度页面');
+  } catch (e) {
+    setStatus('打开额度页面失败: ' + e);
+  }
 }

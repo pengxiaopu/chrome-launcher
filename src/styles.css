@@ -352,15 +352,19 @@ body[data-theme="light"] {
 }
 
 .col-email {
-  width: 30%;
+  width: 25%;
 }
 
 .col-name {
-  width: 20%;
+  width: 15%;
+}
+
+.col-quota {
+  width: 13%;
 }
 
 .col-tags {
-  width: 28%;
+  width: 22%;
 }
 
 .col-dir {
@@ -368,7 +372,7 @@ body[data-theme="light"] {
 }
 
 .col-actions {
-  width: 10%;
+  width: 13%;
   text-align: right;
 }
 
@@ -385,6 +389,38 @@ body[data-theme="light"] {
   color: var(--text-muted);
   font-size: 12px;
   font-family: 'Courier New', monospace;
+}
+
+/* ========== Quota Cell ========== */
+.quota-cell {
+  font-size: 12px;
+}
+
+.btn-quota {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-quota:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.btn-quota:active {
+  transform: translateY(0);
 }
 
 /* ========== Tags ========== */
