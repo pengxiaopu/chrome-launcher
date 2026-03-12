@@ -396,17 +396,23 @@ body[data-theme="light"] {
   font-size: 12px;
 }
 
+.quota-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .btn-quota {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: all var(--transition);
   white-space: nowrap;
@@ -416,11 +422,78 @@ body[data-theme="light"] {
   background: rgba(99, 102, 241, 0.1);
   border-color: var(--accent);
   color: var(--accent-light);
-  transform: translateY(-1px);
 }
 
-.btn-quota:active {
-  transform: translateY(0);
+/* 倒计时按钮基础 */
+.btn-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-countdown:hover {
+  border-color: var(--border-hover);
+  color: var(--text-secondary);
+}
+
+/* 未激活 */
+.btn-countdown.cd-idle {
+  opacity: 0.55;
+}
+.btn-countdown.cd-idle:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+/* 激活中 (>=3天) 绿色 */
+.btn-countdown.cd-active {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+}
+.btn-countdown.cd-active:hover {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+/* 警告 (<3天) 黄色 */
+.btn-countdown.cd-warning {
+  border-color: rgba(234, 179, 8, 0.4);
+  color: #eab308;
+  background: rgba(234, 179, 8, 0.08);
+}
+.btn-countdown.cd-warning:hover {
+  background: rgba(234, 179, 8, 0.15);
+}
+
+/* 紧急 (<1天) 红色 + 闪烁 */
+.btn-countdown.cd-urgent {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+/* 已过期 */
+.btn-countdown.cd-expired {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
 }
 
 /* ========== Tags ========== */
@@ -896,6 +969,99 @@ tr:hover .action-btns {
   gap: 8px;
   padding: 14px 20px;
   border-top: 1px solid var(--border);
+}
+
+/* ========== Countdown Modal ========== */
+:root {
+  --success: #22c55e;
+}
+
+.countdown-modal {
+  max-width: 340px;
+  width: 90vw;
+}
+
+.countdown-modal .modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px 12px;
+}
+
+.countdown-modal .modal-header svg {
+  color: var(--accent-light);
+  flex-shrink: 0;
+}
+
+.countdown-modal .modal-header h2 {
+  flex: 1;
+  font-size: 15px;
+  margin: 0;
+}
+
+.cd-modal-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.cd-modal-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cd-modal-remaining {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--success);
+}
+
+.cd-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cd-modal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cd-modal-input-row input[type="number"] {
+  width: 60px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font);
+  text-align: center;
+}
+
+.cd-modal-input-row input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.cd-modal-unit {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.countdown-modal .modal-footer .btn-ghost {
+  color: var(--danger);
+}
+.countdown-modal .modal-footer .btn-ghost:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
 }
 
 /* ========== Animations ========== */

@@ -7,6 +7,7 @@ let tags = {};         // { profileDir: [tag1, tag2, ...] }
 let allTags = [];      // 所有标签去重
 let chromePath = '';
 let selectedProfileDir = null;
+let countdowns = {};   // { profileDir: expireTimestamp } 存入 localStorage
 
 // 标签颜色映射（稳定哈希）
 function tagColorClass(tag) {
@@ -21,6 +22,13 @@ function tagColorClass(tag) {
 document.addEventListener('DOMContentLoaded', async () => {
   // 恢复主题偏好
   initTheme();
+
+  // 加载倒计时数据
+  loadCountdowns();
+  // 初始化倒计时弹窗
+  initCountdownModal();
+  // 每 60 秒刷新倒计时显示
+  setInterval(tickCountdowns, 60000);
 
   // 检测 Chrome
   try {
@@ -117,10 +125,15 @@ function renderTable() {
       <td class="email-cell">${escapeHtml(profile.email)}</td>
       <td class="name-cell">${escapeHtml(profile.name)}</td>
       <td class="quota-cell">
-        <button class="btn-quota" data-action="quota" data-dir="${escapeHtml(profile.profile_dir)}" title="在 Chrome 中查看该账号的 AI 额度">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-          查看
-        </button>
+        <div class="quota-btns">
+          <button class="btn-quota" data-action="quota" data-dir="${escapeHtml(profile.profile_dir)}" title="在 Chrome 中查看该账号的 AI 额度">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            查看
+          </button>
+          <button class="btn-countdown ${getCountdownClass(profile.profile_dir)}" data-action="countdown" data-dir="${escapeHtml(profile.profile_dir)}" title="点击开始 7 天额度刷新倒计时">
+            ${renderCountdownBtn(profile.profile_dir)}
+          </button>
+        </div>
       </td>
       <td>
         <div class="tags-cell" data-dir="${escapeHtml(profile.profile_dir)}" data-email="${escapeHtml(profile.email)}">
@@ -243,6 +256,8 @@ function bindEvents() {
       showQuickTagDropdown(btn, dir, email);
     } else if (action === 'quota') {
       openQuotaPage(dir);
+    } else if (action === 'countdown') {
+      toggleCountdown(dir);
     }
   });
 
@@ -625,4 +640,158 @@ async function openQuotaPage(profileDir) {
   } catch (e) {
     setStatus('打开额度页面失败: ' + e);
   }
+}
+
+// ========== 7 天倒计时 ==========
+const COUNTDOWN_KEY = 'chrome_launcher_countdowns';
+const COUNTDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+
+// 当前弹窗对应的 profileDir
+let countdownModalDir = null;
+
+function loadCountdowns() {
+  try { countdowns = JSON.parse(localStorage.getItem(COUNTDOWN_KEY) || '{}'); }
+  catch { countdowns = {}; }
+}
+
+function saveCountdowns() {
+  localStorage.setItem(COUNTDOWN_KEY, JSON.stringify(countdowns));
+}
+
+// 初始化弹窗事件（在 DOMContentLoaded 中调用一次）
+function initCountdownModal() {
+  document.getElementById('btnCloseCountdownModal').addEventListener('click', closeCountdownModal);
+  document.getElementById('countdownModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('countdownModal')) closeCountdownModal();
+  });
+  // 取消倒计时
+  document.getElementById('btnCdCancel').addEventListener('click', () => {
+    if (!countdownModalDir) return;
+    delete countdowns[countdownModalDir];
+    saveCountdowns();
+    updateCountdownBtnInline(countdownModalDir);
+    setStatus('已取消倒计时');
+    closeCountdownModal();
+  });
+  // 重置7天
+  document.getElementById('btnCdReset').addEventListener('click', () => {
+    if (!countdownModalDir) return;
+    startCountdownMs(countdownModalDir, COUNTDOWN_MS);
+    setStatus('已重置为 7 天倒计时');
+    closeCountdownModal();
+  });
+  // 自定义天数设置
+  document.getElementById('btnCdSetDays').addEventListener('click', () => {
+    if (!countdownModalDir) return;
+    const days = parseInt(document.getElementById('cdDaysInput').value, 10);
+    if (!days || days < 1) return;
+    startCountdownMs(countdownModalDir, days * 24 * 60 * 60 * 1000);
+    setStatus('已设置 ' + days + ' 天倒计时');
+    closeCountdownModal();
+  });
+  // 回车也能触发设置
+  document.getElementById('cdDaysInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btnCdSetDays').click();
+  });
+}
+
+function openCountdownModal(profileDir) {
+  countdownModalDir = profileDir;
+  // 更新剩余时间显示
+  const ms = getRemainingMs(profileDir);
+  const el = document.getElementById('cdModalRemaining');
+  if (ms === null) {
+    el.textContent = '未开始';
+    el.style.color = 'var(--text-muted)';
+  } else if (ms <= 0) {
+    el.textContent = '已到期';
+    el.style.color = 'var(--danger)';
+  } else {
+    el.textContent = formatCountdownFull(ms);
+    el.style.color = ms < 86400000 * 3 ? 'var(--danger)' : 'var(--success)';
+  }
+  // 默认输入框7
+  document.getElementById('cdDaysInput').value = 7;
+  document.getElementById('countdownModal').style.display = 'flex';
+}
+
+function closeCountdownModal() {
+  document.getElementById('countdownModal').style.display = 'none';
+  countdownModalDir = null;
+}
+
+function toggleCountdown(profileDir) {
+  const expire = countdowns[profileDir];
+  if (expire) {
+    // 已有倒计时（不管是否到期）→ 打开管理弹窗
+    openCountdownModal(profileDir);
+  } else {
+    // 未开始 → 直接启动
+    startCountdownMs(profileDir, COUNTDOWN_MS);
+    setStatus('已开始 7 天倒计时，点击按钮可管理');
+  }
+}
+
+function startCountdown(profileDir) {
+  startCountdownMs(profileDir, COUNTDOWN_MS);
+}
+
+function startCountdownMs(profileDir, ms) {
+  countdowns[profileDir] = Date.now() + ms;
+  saveCountdowns();
+  updateCountdownBtnInline(profileDir);
+}
+
+function getRemainingMs(profileDir) {
+  return countdowns[profileDir] ? countdowns[profileDir] - Date.now() : null;
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return '已到期';
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const mins = Math.floor((ms % 3600000) / 60000);
+  if (days > 0) return days + '天 ' + hours + '时';
+  if (hours > 0) return hours + '时 ' + mins + '分';
+  return mins + '分';
+}
+
+function formatCountdownFull(ms) {
+  if (ms <= 0) return '已到期';
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const mins = Math.floor((ms % 3600000) / 60000);
+  return days + ' 天 ' + hours + ' 时 ' + mins + ' 分';
+}
+
+function getCountdownClass(profileDir) {
+  const ms = getRemainingMs(profileDir);
+  if (ms === null) return 'cd-idle';
+  if (ms <= 0)     return 'cd-expired';
+  if (ms < 86400000) return 'cd-urgent';   // <1天 红
+  if (ms < 86400000 * 3) return 'cd-warning'; // <3天 黄
+  return 'cd-active';                          // >=3天 绿
+}
+
+const CLOCK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+const ALERT_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+function renderCountdownBtn(profileDir) {
+  const ms = getRemainingMs(profileDir);
+  if (ms === null) return CLOCK_SVG + ' 倒计时';
+  if (ms <= 0)     return ALERT_SVG + ' 已到期';
+  return CLOCK_SVG + ' ' + formatCountdown(ms);
+}
+
+function updateCountdownBtnInline(profileDir) {
+  const btn = document.querySelector('.btn-countdown[data-dir="' + profileDir + '"]');
+  if (!btn) return;
+  btn.innerHTML = renderCountdownBtn(profileDir);
+  btn.className = 'btn-countdown ' + getCountdownClass(profileDir);
+}
+
+function tickCountdowns() {
+  document.querySelectorAll('.btn-countdown[data-dir]').forEach(btn => {
+    updateCountdownBtnInline(btn.dataset.dir);
+  });
 }

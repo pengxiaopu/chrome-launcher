@@ -168,6 +168,37 @@
     </div>
   </div>
 
+  <!-- 倒计时管理弹窗 -->
+  <div class="modal-overlay" id="countdownModal" style="display:none;">
+    <div class="modal countdown-modal">
+      <div class="modal-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <h2>额度刷新倒计时</h2>
+        <button class="btn btn-ghost btn-sm modal-close" id="btnCloseCountdownModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cd-modal-status">
+          <span class="cd-modal-label">当前剩余</span>
+          <span class="cd-modal-remaining" id="cdModalRemaining">—</span>
+        </div>
+        <div class="cd-modal-section">
+          <span class="cd-modal-label">自定义天数</span>
+          <div class="cd-modal-input-row">
+            <input type="number" id="cdDaysInput" min="1" max="30" value="7" />
+            <span class="cd-modal-unit">天后刷新</span>
+            <button class="btn btn-primary btn-sm" id="btnCdSetDays">设置</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="btnCdCancel">取消倒计时</button>
+        <button class="btn btn-primary btn-sm" id="btnCdReset">重置为 7 天</button>
+      </div>
+    </div>
+  </div>
+
   <script src="main.js"></script>
 </body>
 
